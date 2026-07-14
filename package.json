@@ -1,0 +1,29 @@
+{
+  "name": "playwright-dynamic-org-login",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript framework that logs into the default Salesforce org connected to VS Code, with dynamic page URLs and dynamic UI file uploads.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "org:whoami": "node --loader ts-node/esm src/scripts/whoami.ts"
+  },
+  "keywords": [
+    "playwright",
+    "salesforce",
+    "automation",
+    "sfdx",
+    "typescript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "dotenv": "^16.4.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
