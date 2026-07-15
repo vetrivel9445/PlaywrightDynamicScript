@@ -1,0 +1,19 @@
+# UI test mapping sheet — one row = one generated test. Opens in Excel.
+# Columns:
+#   test_name      unique test title
+#   suite          mock  = self-contained run (npm run test:e2e)
+#                  live  = your real org        (npm test)
+#   object         object API name; URL is AUTO-MAPPED to /lightning/o/<object>/list
+#   page_path      explicit page path — only needed to OVERRIDE the auto-mapping
+#   upload_file    optional file to upload on that page (repo-relative path)
+#   expect_heading optional h1 text to assert after navigation
+test_name,suite,object,page_path,upload_file,expect_heading
+Home page opens,mock,,/lightning/page/home,,Home
+Account auto-mapped from object name,mock,Account,,,Account List
+Contact auto-mapped from object name,mock,Contact,,,Contact List
+Custom object auto-mapped,mock,Invoice__c,,,Invoice__c List
+New record page via explicit path,mock,,/lightning/o/Invoice__c/new,,New Invoice__c
+File upload mapped dynamically,mock,,/lightning/upload,tests-e2e/fixtures/sample.pdf,Upload
+# --- live-org rows: edit these for YOUR org, then run: npm test ---
+# Accounts open in my org,live,Account,,,
+# Upload a contract,live,,/lightning/upload,data/contract.pdf,

@@ -10,6 +10,13 @@
     "test:debug": "playwright test --debug",
     "test:e2e": "playwright test --config=playwright.e2e.config.ts",
     "test:e2e:headed": "playwright test --config=playwright.e2e.config.ts --headed",
+    "test:e2e:smoke": "playwright test --config=playwright.e2e.config.ts --grep @smoke",
+    "test:e2e:functional": "playwright test --config=playwright.e2e.config.ts --grep @functional",
+    "test:e2e:negative": "playwright test --config=playwright.e2e.config.ts --grep @negative",
+    "test:e2e:a11y": "playwright test --config=playwright.e2e.config.ts --grep @a11y",
+    "test:e2e:responsive": "playwright test --config=playwright.e2e.config.ts --grep @responsive",
+    "test:e2e:visual": "playwright test --config=playwright.e2e.config.ts --grep @visual",
+    "test:e2e:sheet": "playwright test --config=playwright.e2e.config.ts --grep @sheet",
     "report": "playwright show-report",
     "org:whoami": "node --loader ts-node/esm src/scripts/whoami.ts"
   },

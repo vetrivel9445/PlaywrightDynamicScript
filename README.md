@@ -46,7 +46,7 @@ These are real captures of the framework driving the built-in mock org
 
 | | |
 | --- | --- |
-| **All 13 E2E tests passing** (`npm run report`) | ![Test report — 13 passed](docs/images/05-test-report.png) |
+| **The E2E suite passing across all 6 UI test levels** (`npm run report`) | ![Test report](docs/images/05-test-report.png) |
 | **App Launcher navigation** — `openViaAppLauncher(page, 'Inv…')` filters and opens items by name | ![App Launcher](docs/images/01-app-launcher.png) |
 | **RecordForm** — custom object `Invoice__c` form filled by field label (text, textarea, picklist, checkbox auto-detected) | ![New record form](docs/images/02-record-form.png) |
 | **After `save()`** — success toast verified, record id parsed from the URL | ![Save toast](docs/images/03-save-toast.png) |
@@ -83,9 +83,10 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-✅ **Expected: `13 passed`.** This runs the entire framework — login, dynamic
-navigation, record creation, file upload, API data setup, and App Launcher
-navigation — against a built-in mock org.
+✅ **Expected: `33 passed, 2 skipped`.** This runs the entire framework — login,
+dynamic navigation, record creation, file upload, API data setup, App Launcher
+navigation, and the full UI test pyramid — against a built-in mock org. (The 2
+skipped tests are opt-in visual regression; see the test levels below.)
 If this passes, your machine is set up correctly. If it fails, fix this before
 going further (usually Node < 18 or the browser install).
 
@@ -305,6 +306,59 @@ SF_UPLOAD_FILES=./data/other.pdf npm test       # different upload file
 
 ---
 
+# 🗂 Data-driven tests from a mapping sheet (NPSP / Robot Framework style)
+
+UI tests are **automatically mapped to dynamic URLs** — and when you want
+explicit control, there's a **separate mapping sheet**:
+[`test-mappings.csv`](./test-mappings.csv) (opens directly in Excel).
+**One row = one generated test.** No code needed.
+
+| Column | What it does |
+| --- | --- |
+| `test_name` | Becomes the test's title |
+| `suite` | `mock` (runs in `npm run test:e2e`) or `live` (your org, `npm test`) |
+| `object` | Object API name — the URL is **auto-mapped** to `/lightning/o/<object>/list` |
+| `page_path` | Explicit page path — only needed to *override* the auto-mapping |
+| `upload_file` | Optional file to **upload dynamically** on that page |
+| `expect_heading` | Optional heading to assert after navigation |
+
+Example — these three lines are three complete tests:
+
+```csv
+test_name,suite,object,page_path,upload_file,expect_heading
+Accounts open,live,Account,,,
+Upload a contract,live,,/lightning/upload,data/contract.pdf,
+New invoice page,live,,/lightning/o/Invoice__c/new,,
+```
+
+How it works: `tests/data-driven.spec.ts` reads the sheet at run time and
+generates a Playwright test per row — navigate to the (auto-)mapped URL,
+assert the page, upload the mapped file if one is set. Add a row in Excel,
+save, re-run — that's the whole workflow. This mirrors how Salesforce's
+[NPSP](https://github.com/SalesforceFoundation/NPSP) is tested with
+[Robot Framework](https://robotframework.org/): keyword-driven helpers +
+data-driven mappings kept outside the code.
+
+Run just the sheet-driven tests: `npm run test:e2e:sheet` (mock rows) or
+`npx playwright test --grep @sheet` (live rows).
+
+# 🏔 UI test levels — run any level on its own
+
+The suite is a full UI test pyramid. Every test is tagged, so each level runs
+independently:
+
+| Level | What it verifies | Command |
+| --- | --- | --- |
+| **L1 Smoke** | Every key page loads (generated dynamically from a path list — add a path, get a test) | `npm run test:e2e:smoke` |
+| **L2 Functional** | A complete user journey: API data seed → App Launcher navigation → create record → upload file → API cleanup | `npm run test:e2e:functional` |
+| **L3 Negative & validation** | Required-field validation blocks save; unauthenticated access redirects to login; frontdoor and REST API reject bad tokens | `npm run test:e2e:negative` |
+| **L4 Accessibility** | Every form control has an associated label; buttons have accessible names; a record can be saved keyboard-only | `npm run test:e2e:a11y` |
+| **L5 Responsive** | Record creation works on mobile (iPhone 14) and tablet (iPad Air) viewports | `npm run test:e2e:responsive` |
+| **L6 Visual regression** | Pages match pixel baselines (opt-in: `VISUAL_TESTS=1`; record baselines once with `--update-snapshots`) | `VISUAL_TESTS=1 npm run test:e2e:visual` |
+
+The same tags work for your live-org tests in `tests/` — tag a test title with
+`@smoke` etc. and run `npx playwright test --grep @smoke`.
+
 # 📋 Quick command reference
 
 | I want to… | Command |
@@ -361,7 +415,7 @@ src/
     lightning.ts            # App Launcher navigation + spinner waits
   scripts/whoami.ts         # prints the resolved org
 tests/                      # your live-org tests
-tests-e2e/                  # mock org + mock CLI + 13 self-contained E2E tests
+tests-e2e/                  # mock org + mock CLI + 35 E2E tests (6 UI levels + sheet)
 USER_GUIDE.md               # hands-on user guide + debugging walkthrough
 GUIDE.md                    # project adoption, CI, configuration deep-dive
 ```
@@ -375,4 +429,8 @@ Patterns in this framework draw on the community's Salesforce automation work:
 [TestLeafInc/playwright-salesforce](https://github.com/TestLeafInc/playwright-salesforce)
 (UI/API bridge, auto-login), and
 [foleyautomated/playwright-for-salesforce](https://github.com/foleyautomated/playwright-for-salesforce)
-(VS Code workflow).
+(VS Code workflow),
+[SalesforceFoundation/NPSP](https://github.com/SalesforceFoundation/NPSP) and
+[Robot Framework](https://robotframework.org/) (keyword-driven helpers +
+data-driven mapping sheets kept outside the code — the model for
+`test-mappings.csv`).
