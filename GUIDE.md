@@ -123,6 +123,33 @@ await uploadFiles(page, ['./data/a.png', './data/b.png'], {
 await uploadFiles(page, './data/logo.png', { input: 'input[type="file"]' });
 ```
 
+### New record page — use the `RecordForm` component
+Don't script the new-record modal by hand — use the reusable component. It
+works for **any object, standard or custom**, auto-detects each field's control
+type from its label, handles the record-type chooser when the org has one, and
+verifies the success toast on save:
+
+```ts
+import { RecordForm } from '../src/pages/recordForm.js';
+
+// Standard object
+const account = new RecordForm(page, 'Account');
+await account.openNew();
+await account.setFields({ Name: 'Acme Corp', Active: true });
+const { recordId } = await account.save();
+
+// Custom object — same component, just the API name changes
+const invoice = new RecordForm(page, 'Invoice__c');
+await invoice.openNew('Sales Invoice');       // record type, if your org asks
+await invoice.setFields({ Name: 'INV-001', Status: 'Draft' });
+await invoice.save();
+```
+
+`setField(label, value)` detects checkboxes, `<select>`s, Lightning picklist
+comboboxes, and plain inputs/textareas at runtime, so the caller never needs to
+know how a field is rendered. `save()` returns the created record's id parsed
+from the resulting `/lightning/r/.../view` URL.
+
 ### Dynamic org selection — target a specific org in one test
 ```ts
 import { getOrgAuthInfo } from '../src/utils/orgAuth.js';
