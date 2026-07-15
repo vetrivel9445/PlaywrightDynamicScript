@@ -175,6 +175,75 @@ SF_UPLOAD_FILES=./data/other.pdf npm test  # upload a different file
 
 ---
 
+# Debugging a failing test (step by step)
+
+Most failures are one of two things: the **selector doesn't match** or the
+**page wasn't ready yet**. Work through these in order.
+
+## STEP 1 — Re-run just the failing test, watching the browser
+
+```bash
+npx playwright test tests/my-first-test.spec.ts --headed
+```
+
+Watch where it stops. The line it fails on is in the terminal output.
+
+## STEP 2 — Use debug mode to pause and inspect
+
+```bash
+npm run test:debug
+```
+
+This opens the Playwright Inspector. Click **Step over** to run one action at
+a time. When it reaches the failing step you can see exactly what the page
+looked like at that moment.
+
+## STEP 3 — Find the right selector with the picker
+
+While paused in the Inspector, click **Pick locator**, then click the element
+in the browser. Playwright shows you the best locator for it — copy it into
+your test. Prefer, in this order:
+
+1. `page.getByRole('button', { name: 'Save' })` — most stable
+2. `page.getByLabel('Account Name')` — great for form fields
+3. `page.getByText('Upload Files')`
+4. CSS selectors (`.slds-button`) — last resort, break most often
+
+## STEP 4 — Read the trace of a failed run
+
+After any failed run:
+
+```bash
+npx playwright show-trace test-results/<failing-test-folder>/trace.zip
+```
+
+The trace viewer shows a filmstrip of every step: what the page looked like
+before and after each action, the network calls, and the console. This is the
+fastest way to answer "what did the page actually look like when it failed?"
+
+## STEP 5 — Common Salesforce-specific gotchas
+
+| Symptom | Cause & fix |
+| --- | --- |
+| Element exists in DevTools but Playwright can't find it | It's inside a shadow root. Playwright pierces shadow DOM automatically with `getByRole`/`getByLabel` — avoid long CSS chains. |
+| Click does nothing / flaky | Lightning re-renders after load. Wait for something meaningful first: `await expect(page.getByRole('heading')).toBeVisible()` before clicking. |
+| Field label matches two elements | Salesforce renders duplicate labels (visible + assistive). Use `.first()` or make the label more specific. |
+| Works headed, fails headless | Usually a timing issue — add an assertion (`await expect(...).toBeVisible()`) before the action instead of a `waitForTimeout`. |
+| Login page appears mid-test | Session expired. Delete `.auth/org-session.json` and re-run — the framework logs in fresh. |
+
+## Taking screenshots for your own documentation
+
+Add this anywhere in a test to capture the page:
+
+```ts
+await page.screenshot({ path: 'docs/images/new-record.png', fullPage: true });
+```
+
+Screenshots are also captured **automatically on every failure** (see
+`test-results/`), and the HTML report (`npm run report`) embeds them.
+
+---
+
 # Quick command reference
 
 | I want to… | Command |
