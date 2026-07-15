@@ -1,5 +1,9 @@
 # Step-by-Step Guide — Dynamic Org Login for Any Project
 
+> 👋 New user? [`USER_GUIDE.md`](./USER_GUIDE.md) is the friendlier hands-on
+> walkthrough of the same steps, with copy-paste examples for every helper.
+> This document goes deeper: project adoption, CI, and configuration.
+
 This framework is **project-agnostic**. Nothing is hardcoded to one org, one
 page, or one file, so you can drop it into any Salesforce project and point it
 at whatever org, pages, and uploads that project needs. This guide walks you
