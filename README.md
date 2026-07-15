@@ -15,6 +15,45 @@ Everything the tests touch is resolved dynamically at runtime.
 
 ---
 
+# 🖼 Visual overview
+
+## How the dynamic org login works
+
+```mermaid
+flowchart LR
+    A["VS Code<br/>(default org set)"] --> B["Salesforce CLI<br/>sf org display"]
+    B --> C["orgAuth.ts<br/>instanceUrl + accessToken"]
+    C --> D["frontdoor.jsp<br/>token → browser session"]
+    D --> E["storageState<br/>session cached once"]
+    E --> F["All tests start<br/>already logged in"]
+```
+
+## What a test run looks like
+
+```mermaid
+flowchart TD
+    S["SfApi<br/>create test data via REST API"] --> N["openPage / openViaAppLauncher<br/>navigate dynamically"]
+    N --> R["RecordForm<br/>fill any object's form by label"]
+    R --> U["uploadFiles<br/>dynamic UI file upload"]
+    U --> V["assertions + toast checks"]
+    V --> T["SfApi<br/>delete test data"]
+```
+
+## Screenshots from the self-contained test run
+
+These are real captures of the framework driving the built-in mock org
+(`npm run test:e2e`) — the same helpers drive your real org identically.
+
+| | |
+| --- | --- |
+| **All 13 E2E tests passing** (`npm run report`) | ![Test report — 13 passed](docs/images/05-test-report.png) |
+| **App Launcher navigation** — `openViaAppLauncher(page, 'Inv…')` filters and opens items by name | ![App Launcher](docs/images/01-app-launcher.png) |
+| **RecordForm** — custom object `Invoice__c` form filled by field label (text, textarea, picklist, checkbox auto-detected) | ![New record form](docs/images/02-record-form.png) |
+| **After `save()`** — success toast verified, record id parsed from the URL | ![Save toast](docs/images/03-save-toast.png) |
+| **Dynamic file upload** — `sample.pdf` set on the hidden Lightning input | ![File upload](docs/images/04-file-upload.png) |
+
+---
+
 # 🚀 How to Use — Step by Step
 
 Follow these steps in order. Each one tells you what to type and what you
