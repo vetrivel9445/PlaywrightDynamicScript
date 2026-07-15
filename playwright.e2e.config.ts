@@ -47,6 +47,9 @@ export default defineConfig({
     launchOptions: process.env.PW_EXECUTABLE_PATH
       ? { executablePath: process.env.PW_EXECUTABLE_PATH }
       : {},
+    // PW_CHANNEL=chrome runs in your installed Google Chrome instead of
+    // Playwright's bundled Chromium.
+    ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
   },
 
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

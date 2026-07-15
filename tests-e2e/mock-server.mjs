@@ -66,6 +66,81 @@ function recordViewPage(objectApiName, recordId, params) {
   </dl>`);
 }
 
+// Home page with an App Launcher and a briefly-visible SLDS spinner, mirroring
+// the Lightning behaviors the lightning.ts helpers handle.
+const homePage = html(`
+  <div class="slds-spinner" id="spin" role="status">Loading…</div>
+  <button aria-label="App Launcher" title="App Launcher">☰</button>
+  <div id="al-panel" hidden>
+    <input placeholder="Search apps and items..." id="al-search" />
+    <ul id="al-items">
+      <li><a href="/lightning/o/Account/list">Accounts</a></li>
+      <li><a href="/lightning/o/Contact/list">Contacts</a></li>
+      <li><a href="/lightning/o/Invoice__c/list">Invoices</a></li>
+    </ul>
+  </div>
+  <h1>Home</h1><p>Authenticated mock org home page.</p>
+  <script>
+    setTimeout(function () { document.getElementById('spin').style.display = 'none'; }, 400);
+    document.querySelector('[title="App Launcher"]').addEventListener('click', function () {
+      document.getElementById('al-panel').hidden = false;
+    });
+    document.getElementById('al-search').addEventListener('input', function (e) {
+      var q = e.target.value.toLowerCase();
+      document.querySelectorAll('#al-items li').forEach(function (li) {
+        li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  </script>`);
+
+// In-memory record store backing the mock REST API (sfApi.ts helper).
+const apiRecords = new Map(); // id -> { objectApiName, fields }
+let apiCounter = 0;
+
+function handleRestApi(req, res, url) {
+  if (!(req.headers.authorization || '').startsWith('Bearer ')) {
+    res.writeHead(401, { 'content-type': 'application/json' });
+    res.end(JSON.stringify([{ errorCode: 'INVALID_SESSION_ID' }]));
+    return true;
+  }
+
+  const create = url.pathname.match(/^\/services\/data\/v[\d.]+\/sobjects\/([^/]+)\/?$/);
+  if (create && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c) => (body += c));
+    req.on('end', () => {
+      const id = `a01${String(++apiCounter).padStart(12, '0')}AAA`;
+      apiRecords.set(id, { objectApiName: create[1], fields: JSON.parse(body || '{}') });
+      res.writeHead(201, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ id, success: true, errors: [] }));
+    });
+    return true;
+  }
+
+  if (url.pathname.match(/^\/services\/data\/v[\d.]+\/query$/) && req.method === 'GET') {
+    const soql = url.searchParams.get('q') ?? '';
+    const from = soql.match(/FROM\s+(\w+)/i)?.[1];
+    const records = [...apiRecords.entries()]
+      .filter(([, r]) => r.objectApiName === from)
+      .map(([id, r]) => ({ Id: id, ...r.fields }));
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ totalSize: records.length, done: true, records }));
+    return true;
+  }
+
+  const del = url.pathname.match(/^\/services\/data\/v[\d.]+\/sobjects\/([^/]+)\/([^/]+)$/);
+  if (del && req.method === 'DELETE') {
+    apiRecords.delete(del[2]);
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
+
+  res.writeHead(404, { 'content-type': 'application/json' });
+  res.end(JSON.stringify([{ errorCode: 'NOT_FOUND' }]));
+  return true;
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
 
@@ -73,6 +148,11 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/health') {
     res.writeHead(200, { 'content-type': 'text/plain' });
     return res.end('ok');
+  }
+
+  // REST API (Bearer-token auth, like the real Salesforce API).
+  if (url.pathname.startsWith('/services/data/')) {
+    return void handleRestApi(req, res, url);
   }
 
   // Salesforce "frontdoor" login: exchange a session id for an authenticated
@@ -100,7 +180,14 @@ const server = http.createServer((req, res) => {
 
   if (url.pathname === '/lightning/page/home') {
     res.writeHead(200, { 'content-type': 'text/html' });
-    return res.end(html('<h1>Home</h1><p>Authenticated mock org home page.</p>'));
+    return res.end(homePage);
+  }
+
+  // Dynamic object list pages: /lightning/o/<ObjectApiName>/list
+  const listMatch = url.pathname.match(/^\/lightning\/o\/([^/]+)\/list$/);
+  if (listMatch) {
+    res.writeHead(200, { 'content-type': 'text/html' });
+    return res.end(html(`<h1>${listMatch[1]} List</h1>`));
   }
 
   if (url.pathname === '/lightning/upload') {
