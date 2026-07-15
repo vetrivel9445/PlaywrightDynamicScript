@@ -37,6 +37,11 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // Optional: point at a system-provided Chromium (e.g. CI images that
+    // pre-install browsers). Unset on a normal dev machine.
+    launchOptions: process.env.PW_EXECUTABLE_PATH
+      ? { executablePath: process.env.PW_EXECUTABLE_PATH }
+      : {},
   },
 
   projects: [

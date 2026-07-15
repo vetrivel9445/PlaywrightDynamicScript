@@ -4,6 +4,10 @@ A Playwright + TypeScript framework that logs into the **default Salesforce org
 connected to VS Code** — no hardcoded usernames, passwords, URLs, or file paths.
 Everything the tests touch is resolved dynamically at runtime.
 
+> 📘 **New here? Follow [`GUIDE.md`](./GUIDE.md)** — a step-by-step walkthrough
+> that works for any project, including a self-contained test suite you can run
+> **without a real org** (`npm run test:e2e`).
+
 ## What's dynamic
 
 | Concern | How it stays dynamic |

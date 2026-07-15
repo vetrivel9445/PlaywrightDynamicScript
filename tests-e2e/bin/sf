@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+// Mock Salesforce CLI for self-contained E2E tests. Emulates the JSON output of
+// `sf org display --json` so the real orgAuth.ts code path runs unchanged,
+// pointing at the local mock org server instead of a live Salesforce instance.
+const port = process.env.MOCK_ORG_PORT || '8787';
+process.stdout.write(
+  JSON.stringify({
+    status: 0,
+    result: {
+      instanceUrl: `http://127.0.0.1:${port}`,
+      accessToken: 'MOCK_SID_TOKEN_E2E',
+      username: 'e2e@mock.org.example',
+      id: '00Dxx0000001gEXEAY',
+      connectedStatus: 'Connected',
+    },
+  }),
+);
