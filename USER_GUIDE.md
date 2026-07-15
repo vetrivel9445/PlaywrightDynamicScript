@@ -32,10 +32,11 @@ a Chromium browser.
 npm run test:e2e
 ```
 
-**What you should see:** `13 passed`. This runs the whole framework — login,
-page navigation, file upload, record creation, API data setup, and App
-Launcher navigation — against a built-in mock org. If this passes, your
-machine is set up correctly.
+**What you should see:** `26 passed, 2 skipped`. This runs the whole framework —
+login, page navigation, file upload, record creation, API data setup, App
+Launcher navigation, and the full UI test pyramid (smoke, functional, negative,
+accessibility, responsive; visual regression is the opt-in skipped pair) —
+against a built-in mock org. If this passes, your machine is set up correctly.
 
 > ❗ If this step fails, nothing later will work — fix this first
 > (usually it's Node < 18 or the browser install; see GUIDE.md troubleshooting).

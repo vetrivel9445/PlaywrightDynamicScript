@@ -39,11 +39,16 @@ function newRecordPage(objectApiName) {
       <select id="f-stage"><option>Draft</option><option>Open</option><option>Closed</option></select>
     </div>
     <div><label for="f-active">Active</label><input id="f-active" type="checkbox" /></div>
+    <div id="f-error" class="slds-has-error" role="alert" hidden>Name is required</div>
     <button type="button" id="save">Save</button>
   </form>
   <script>
     document.getElementById('save').addEventListener('click', function () {
-      var name = document.getElementById('f-name').value || 'unnamed';
+      var name = document.getElementById('f-name').value;
+      if (!name) {
+        document.getElementById('f-error').hidden = false;
+        return;
+      }
       var stage = document.getElementById('f-stage').value;
       var active = document.getElementById('f-active').checked;
       var qs = new URLSearchParams({ name: name, stage: stage, active: String(active) });
@@ -98,7 +103,8 @@ const apiRecords = new Map(); // id -> { objectApiName, fields }
 let apiCounter = 0;
 
 function handleRestApi(req, res, url) {
-  if (!(req.headers.authorization || '').startsWith('Bearer ')) {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/, '');
+  if (token !== 'MOCK_SID_TOKEN_E2E') {
     res.writeHead(401, { 'content-type': 'application/json' });
     res.end(JSON.stringify([{ errorCode: 'INVALID_SESSION_ID' }]));
     return true;
@@ -169,6 +175,11 @@ const server = http.createServer((req, res) => {
       location: retURL,
     });
     return res.end();
+  }
+
+  if (url.pathname === '/secur/login') {
+    res.writeHead(200, { 'content-type': 'text/html' });
+    return res.end(html('<h1>Login</h1><p>Session required.</p>'));
   }
 
   // Any authenticated page requires the session cookie set by frontdoor.
