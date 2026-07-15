@@ -49,7 +49,7 @@ npx playwright install chromium
 ```bash
 npm run test:e2e
 ```
-Expected: **26 passed, 2 skipped**. This confirms login, dynamic navigation, dynamic
+Expected: **33 passed, 2 skipped**. This confirms login, dynamic navigation, dynamic
 uploads, record creation, and the API data helper all work before you touch a
 real org. If this passes, the framework is
 healthy — any later failure is about your org or your selectors, not the setup.

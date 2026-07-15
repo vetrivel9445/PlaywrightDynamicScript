@@ -16,6 +16,7 @@
     "test:e2e:a11y": "playwright test --config=playwright.e2e.config.ts --grep @a11y",
     "test:e2e:responsive": "playwright test --config=playwright.e2e.config.ts --grep @responsive",
     "test:e2e:visual": "playwright test --config=playwright.e2e.config.ts --grep @visual",
+    "test:e2e:sheet": "playwright test --config=playwright.e2e.config.ts --grep @sheet",
     "report": "playwright show-report",
     "org:whoami": "node --loader ts-node/esm src/scripts/whoami.ts"
   },

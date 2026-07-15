@@ -32,7 +32,7 @@ a Chromium browser.
 npm run test:e2e
 ```
 
-**What you should see:** `26 passed, 2 skipped`. This runs the whole framework —
+**What you should see:** `33 passed, 2 skipped`. This runs the whole framework —
 login, page navigation, file upload, record creation, API data setup, App
 Launcher navigation, and the full UI test pyramid (smoke, functional, negative,
 accessibility, responsive; visual regression is the opt-in skipped pair) —

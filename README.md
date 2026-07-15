@@ -83,7 +83,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-✅ **Expected: `26 passed, 2 skipped`.** This runs the entire framework — login,
+✅ **Expected: `33 passed, 2 skipped`.** This runs the entire framework — login,
 dynamic navigation, record creation, file upload, API data setup, App Launcher
 navigation, and the full UI test pyramid — against a built-in mock org. (The 2
 skipped tests are opt-in visual regression; see the test levels below.)
@@ -306,6 +306,42 @@ SF_UPLOAD_FILES=./data/other.pdf npm test       # different upload file
 
 ---
 
+# 🗂 Data-driven tests from a mapping sheet (NPSP / Robot Framework style)
+
+UI tests are **automatically mapped to dynamic URLs** — and when you want
+explicit control, there's a **separate mapping sheet**:
+[`test-mappings.csv`](./test-mappings.csv) (opens directly in Excel).
+**One row = one generated test.** No code needed.
+
+| Column | What it does |
+| --- | --- |
+| `test_name` | Becomes the test's title |
+| `suite` | `mock` (runs in `npm run test:e2e`) or `live` (your org, `npm test`) |
+| `object` | Object API name — the URL is **auto-mapped** to `/lightning/o/<object>/list` |
+| `page_path` | Explicit page path — only needed to *override* the auto-mapping |
+| `upload_file` | Optional file to **upload dynamically** on that page |
+| `expect_heading` | Optional heading to assert after navigation |
+
+Example — these three lines are three complete tests:
+
+```csv
+test_name,suite,object,page_path,upload_file,expect_heading
+Accounts open,live,Account,,,
+Upload a contract,live,,/lightning/upload,data/contract.pdf,
+New invoice page,live,,/lightning/o/Invoice__c/new,,
+```
+
+How it works: `tests/data-driven.spec.ts` reads the sheet at run time and
+generates a Playwright test per row — navigate to the (auto-)mapped URL,
+assert the page, upload the mapped file if one is set. Add a row in Excel,
+save, re-run — that's the whole workflow. This mirrors how Salesforce's
+[NPSP](https://github.com/SalesforceFoundation/NPSP) is tested with
+[Robot Framework](https://robotframework.org/): keyword-driven helpers +
+data-driven mappings kept outside the code.
+
+Run just the sheet-driven tests: `npm run test:e2e:sheet` (mock rows) or
+`npx playwright test --grep @sheet` (live rows).
+
 # 🏔 UI test levels — run any level on its own
 
 The suite is a full UI test pyramid. Every test is tagged, so each level runs
@@ -379,7 +415,7 @@ src/
     lightning.ts            # App Launcher navigation + spinner waits
   scripts/whoami.ts         # prints the resolved org
 tests/                      # your live-org tests
-tests-e2e/                  # mock org + mock CLI + 28 self-contained E2E tests (6 UI levels)
+tests-e2e/                  # mock org + mock CLI + 35 E2E tests (6 UI levels + sheet)
 USER_GUIDE.md               # hands-on user guide + debugging walkthrough
 GUIDE.md                    # project adoption, CI, configuration deep-dive
 ```
@@ -393,4 +429,8 @@ Patterns in this framework draw on the community's Salesforce automation work:
 [TestLeafInc/playwright-salesforce](https://github.com/TestLeafInc/playwright-salesforce)
 (UI/API bridge, auto-login), and
 [foleyautomated/playwright-for-salesforce](https://github.com/foleyautomated/playwright-for-salesforce)
-(VS Code workflow).
+(VS Code workflow),
+[SalesforceFoundation/NPSP](https://github.com/SalesforceFoundation/NPSP) and
+[Robot Framework](https://robotframework.org/) (keyword-driven helpers +
+data-driven mapping sheets kept outside the code — the model for
+`test-mappings.csv`).
