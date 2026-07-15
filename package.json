@@ -8,6 +8,8 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
+    "test:e2e": "playwright test --config=playwright.e2e.config.ts",
+    "test:e2e:headed": "playwright test --config=playwright.e2e.config.ts --headed",
     "report": "playwright show-report",
     "org:whoami": "node --loader ts-node/esm src/scripts/whoami.ts"
   },
@@ -20,7 +22,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "1.61.1",
     "@types/node": "^22.10.0",
     "dotenv": "^16.4.7",
     "ts-node": "^10.9.2",
